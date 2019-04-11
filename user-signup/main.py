@@ -1,89 +1,75 @@
-from flask import Flask, request
+from flask import Flask, request, redirect, render_template 
+import urllib.parse
+import cgi 
+import os 
+
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
-form = """
-<!DOCTYPE html>
-<html>
-    <head>
-    <style>
-        body {
-            background-color: #F5F5F5;
-        }
-        div.main_form {
-            margin-top: 100px;
-            display: block;
-            background-color: #00FF7F;
-            padding: 20px;                margin: 0 auto;
-            width: 540px;
-            font: 16px sans-serif;
-            border-radius: 20px;
-            }
-        .main_form label {
-            font-size: 18px;
-            margin: 10px 0;
-            width: 540px;
-            height: 120px;
-            }
-        .main_form form {
-            text-align: left;
-        }
-
-        .main_form input {
-            width: 80%;
-            height: 25px;
-            display: block;
-            background-color: #F0FFF0;
-        }
-
-        #sub_button {
-            text-align: center;
-            margin: 0px auto;
-            width: 200px;
-            height: 50px;
-            font-size: 30px;
-            font-weight: bold;
-            border-radius: 15px;
-            box-shadow: 4px 4px 4px 4px;
-        }
-
-        .main_form .submit {
-            margin-top: 20px;
-            margin-left: 20px;
-            margin-right: 20px;
-            width: 50%;
-            text-align: center;
-        }
-
-        .main_form h1 {
-            text-align: center;
-            text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
-            text-transform: uppercase;
-            font-size: 40px;
-        }
-
-    </style>
-    </head>
-    <body>
-    <div class= "main_form">
-        <h1>Sign-Up Form</h1>
-        <form action= "/" method= "POST">            
-            <label for= "username" value= "">Username:</label>
-            <input id= "username" type= "text" name= "username" /><br>
-            <label for= "password" value= "">Password:</label>
-            <input type= "password" name= "password" /><br>
-            <label for= "email" value= "">E-Mail:</label>
-            <input type= "email" name= "email" /><br>           
-            <input id="sub_button" type= "submit"/>
-        </form>
-    </div>
-    </body>
-</html>
-"""
 
 @app.route("/")
 def index():
-    return form
+    username_error= request.args.get("username_error")
+    password_error= request.args.get("password_error")
+    password_error2= request.args.get("password_error2")
+    email_error= request.args.get("email_error")
+    #encoded_error = request.args.get("error")
+    return render_template("form.html", username_error=username_error, password_error=password_error, password_error2=password_error2, email_error=email_error)
 
+#username_error = False
+#password_error = False
+#email_error = False
+
+@app.route("/welcome", methods=["POST"])
+def welcome():
+    username = request.form["username"]
+    password = request.form["password"]
+    email = request.form["email"]
+    verify_password = request.form["verify_password"]
+    no_error = True
+    #username_error = ""
+    #password_error = ""
+    #password_error2 = ""
+    #email_error = ""
+    #errors = ""
+    params = {
+        "username_error": "",
+        "password_error": "",
+        "password_error2": "",
+        "email_error": "",
+    }
+    if (len(username) < 3 or len(username) > 20) or ((not username) or username.strip() == "") or " " in username: 
+        params["username_error"] = "Username MUST be between 3-20 characters long and cannot have any spaces."
+        #errors += username_error
+        no_error = False
+    if (len(password) > 20 or len(password) < 3) or (" " in password) or ((not password) or password.strip() == ""):
+        params["password_error"] = "Password MUST be between 3-20 characters long and cannot have any spaces."
+        #errors += password_error
+        no_error = False
+    if verify_password != password:
+        params["password_error2"] = "Make sure password is the same in both boxes."
+        #errors += password_error2
+        #password = ""
+        no_error = False
+    if len(email)>0 and ("@" and ".") not in email:
+        params["email_error"] = "Please enter a valid email address."
+        #errors += email_error
+        no_error = False
+
+    if not no_error:
+        query_string = urllib.parse.urlencode(params)
+        return redirect("/?" + query_string)
+        #return render_template("form.html", username_error=username_error, password_error=password_error, password_error2=password_error2, email_error=email_error)
+    else:
+        return render_template("welcome_page.html", username=username)
+
+@app.route("/?error=", methods=["POST", "GET"])
+def error_display():
+    username_error= request.args.get("username_error")
+    password_error= request.args.get("password_error")
+    password_error2= request.args.get("password_error2")
+    email_error= request.args.get("email_error")
+
+    return render_template("form.html", username_error=username_error, password_error=password_error, password_error2=password_error2, email_error=email_error)
 app.run()
