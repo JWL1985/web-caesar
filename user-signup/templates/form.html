@@ -3,27 +3,23 @@
 {% block content %}
 <div class= "main_form">
     <h1>Sign-Up Form</h1>
-    <form action= "/welcome" method= "POST">            
+    {%  if form %}
+    {{ form }}
+    {% endif %}
+    <form action= "/" method= "POST">            
         <label for= "username" value= "">Username:</label>
-            {% if username_error %}
-            <p class='error'>{{ username_error }}</p>
-            {% endif %}
-        <input id= "username" type= "text" name= "username" /><br>
+            <p class='error'>{{ error.username_error or '' }}</p>
+        <input id= "username" type= "text" name= "username" value="{{ request.form['username'] }}" /><br>
         <label for= "password" value= "">Password:</label>
-            {% if password_error %}
-            <p class="error">{{ password_error }}</p>
-            {% endif %}
-        <input type= "password" name= "password" /><br>
+            <p class="error">{{ error.password_error or '' }}</p>
+        <input type= "password" name= "password" autocomplete= "off" /><br>
         <label for= "password" value= "">Verify Password:</label>
-            {% if password_error2 %}
-            <p class='error'>{{ password_error2 }}</p>
-            {% endif %}
-        <input type= "password" name= "verify_password" /><br>
+            <p class='error'>{{ error.password_error2 or '' }}</p>
+        <input type= "password" name= "verify_password" autocomplete = "off" /><br>
         <label for= "email" value= "">E-Mail:</label>
-            {% if email_error %}
-            <p class='error'>{{ email_error }}</p>
-            {% endif %}
-        <input type= "text" name= "email" /><br>           
+            <p class='error'>{{ error.email_error or '' }}</p>
+        <input type= "text" name= "email" value="{{ request.form['email'] }}"/><br>           
         <input id="sub_button" type= "submit"/>
     </form>
+    
     {% endblock %}
